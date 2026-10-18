@@ -1,7 +1,6 @@
 //! Robust geometry using the `geo` crate.
 
 use geo::{Area, EuclideanLength, Polygon as GeoPolygon, Coord, LineString};
-use geo_types::Point;
 use serde::{Deserialize, Serialize};
 
 /// A polygon defined by vertices in drawing units (pixels or calibrated).
