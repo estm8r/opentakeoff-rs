@@ -1,6 +1,6 @@
 //! Takeoff document model with full provenance.
 
-use crate::geometry::Polygon;
+use crate::geometry::{Polygon, area_sf};
 use crate::scale::Scale;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -10,23 +10,30 @@ pub enum Method {
     Manual,
     Agent,
     AutoDetect,
-    OneClick, // when re-implemented
+    OneClick,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Provenance {
     pub method: Method,
-    pub actor: String,          // "human:estm8r" or "agent:claude"
-    pub confidence: f32,        // 0.0–1.0
-    pub timestamp: String,      // ISO 8601
-    pub original_geometry: Option<Polygon>, // frozen machine original
+    pub actor: String,
+    pub confidence: f32,
+    pub timestamp: String,
+    pub original_geometry: Option<Polygon>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum MeasurementKind {
+    Area { geometry: Polygon },
+    Linear { points: Vec<(f64, f64)> },
+    Count { position: (f64, f64), symbol: Option<String> },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Measurement {
     pub id: String,
     pub condition: String,
-    pub geometry: Polygon,
+    pub kind: MeasurementKind,
     pub provenance: Provenance,
     pub approved: bool,
 }
@@ -35,6 +42,7 @@ pub struct Measurement {
 pub struct Condition {
     pub name: String,
     pub waste_percent: f64,
+    pub unit: String, // "SF", "LF", "EA"
     pub notes: Option<String>,
 }
 
@@ -65,15 +73,46 @@ impl Takeoff {
         self.conditions.insert(cond.name.clone(), cond);
     }
 
-    /// Raw measured area (SF) for a condition across all sheets.
-    /// Waste is applied only in reports.
-    pub fn raw_area_sf(&self, condition: &str) -> f64 {
+    pub fn add_sheet(&mut self, sheet: Sheet) {
+        self.sheets.push(sheet);
+    }
+
+    /// Raw measured quantity for a condition (waste not applied).
+    pub fn raw_quantity(&self, condition: &str) -> f64 {
+        let Some(_cond) = self.conditions.get(condition) else { return 0.0; };
         self.sheets.iter().map(|sheet| {
             let upp = sheet.scale.as_ref().map(|s| s.upp).unwrap_or(1.0);
             sheet.measurements.iter()
                 .filter(|m| m.condition == condition && m.approved)
-                .map(|m| crate::geometry::area_sf(&m.geometry, upp))
+                .map(|m| match &m.kind {
+                    MeasurementKind::Area { geometry } => area_sf(geometry, upp),
+                    MeasurementKind::Linear { points } => {
+                        points.windows(2).map(|w| {
+                            let dx = w[1].0 - w[0].0;
+                            let dy = w[1].1 - w[0].1;
+                            (dx*dx + dy*dy).sqrt()
+                        }).sum::<f64>() / upp
+                    }
+                    MeasurementKind::Count { .. } => 1.0,
+                })
                 .sum::<f64>()
         }).sum()
+    }
+
+    pub fn order_quantity(&self, condition: &str) -> f64 {
+        let raw = self.raw_quantity(condition);
+        let waste = self.conditions.get(condition).map(|c| c.waste_percent).unwrap_or(0.0);
+        raw * (1.0 + waste / 100.0)
+    }
+
+    pub fn save_json(&self, path: &str) -> anyhow::Result<()> {
+        let json = serde_json::to_string_pretty(self)?;
+        std::fs::write(path, json)?;
+        Ok(())
+    }
+
+    pub fn load_json(path: &str) -> anyhow::Result<Self> {
+        let data = std::fs::read_to_string(path)?;
+        Ok(serde_json::from_str(&data)?)
     }
 }

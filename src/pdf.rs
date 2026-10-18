@@ -1,16 +1,29 @@
-//! PDF handling (stub).
-//!
-//! Full implementation will use pdfium-render or similar for page rendering
-//! and vector extraction. For now, this documents the intended interface.
+//! PDF text extraction for scale detection and plan metadata.
 
-/// Placeholder for loading a PDF plan set.
-pub struct PdfPlanSet {
-    // path, page count, etc.
+use anyhow::Result;
+
+/// Extract text from all pages of a PDF.
+pub fn extract_text(path: &str) -> Result<String> {
+    let bytes = std::fs::read(path)?;
+    let text = pdf_extract::extract_text_from_mem(&bytes)?;
+    Ok(text)
 }
 
-impl PdfPlanSet {
-    pub fn open(_path: &str) -> anyhow::Result<Self> {
-        // TODO: implement with pdfium or lopdf + renderer
-        anyhow::bail!("PDF loading not yet implemented — foundation only")
+/// Attempt to detect a common architectural scale note.
+pub fn detect_scale_note(text: &str) -> Option<String> {
+    let lower = text.to_lowercase();
+    for candidate in [
+        r#"1/4\" = 1'-0\""#,
+        r#"1/8\" = 1'-0\""#,
+        r#"1/2\" = 1'-0\""#,
+        r#"3/16\" = 1'-0\""#,
+        "1:50",
+        "1:100",
+        "scale:",
+    ] {
+        if lower.contains(&candidate.to_lowercase()) {
+            return Some(candidate.to_string());
+        }
     }
+    None
 }

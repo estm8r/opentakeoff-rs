@@ -10,4 +10,4 @@ pub mod pdf;
 
 pub use geometry::{area_sf, perimeter_lf, Polygon};
 pub use scale::Scale;
-pub use takeoff::{Condition, Measurement, Provenance, Takeoff, Method};
+pub use takeoff::{Condition, Measurement, MeasurementKind, Provenance, Takeoff, Method, Sheet};
