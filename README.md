@@ -1,76 +1,67 @@
 # opentakeoff-rs
 
-**Rust rewrite of [OpenTakeoff](https://github.com/Kentucky-ai/opentakeoff)** — a construction quantity takeoff tool for measuring materials, areas, lengths, and counts from PDF blueprints.
+**Rust rewrite of [OpenTakeoff](https://github.com/Kentucky-ai/opentakeoff)** — native construction quantity takeoff from PDF blueprints.
 
-This is a ground-up rewrite focused on performance, correctness, type safety, and a native desktop experience. The original is a sophisticated browser-based app (React + TypeScript + pdf.js + Canvas + MCP). This project reimplements the valuable core (geometry, scale, quantities, provenance) in pure Rust and builds toward a fast, offline-capable desktop application.
+Ground-up rewrite focused on performance, correctness, type safety, and a reliable offline experience.
 
-## Goals & Improvements
+## Current Capabilities (v0.1)
 
-| Area | Original (JS/TS) | opentakeoff-rs |
-|------|------------------|----------------|
-| Runtime | Browser (pdf.js, Canvas) | Native desktop + CLI |
-| Geometry | Custom TS + floating point | `geo` crate (robust polygon ops) |
-| Type safety | Good TS, but dynamic | Strong Rust types for Scale, Quantity, Provenance |
-| Performance | Good for web | Native speed for large plan sets |
-| Offline | Client-only but browser-dependent | Fully offline native |
-| AI / MCP | TypeScript MCP server | Planned Rust MCP (rmcp) |
-| File access | Browser sandbox | Direct filesystem |
+- **Geometry engine** (`geo` crate): area (SF), perimeter, holes
+- **Scale model**: explicit calibration (`Scale::calibrate`), no silent assumptions
+- **Measurement types**: Area, Linear (polyline), Count
+- **Provenance**: method, actor, confidence, approval flag, original geometry
+- **Conditions**: name, waste %, unit (SF/LF/EA)
+- **JSON project persistence**: save/load full takeoffs
+- **CLI**:
+  - `cargo run -- demo` — shows a 10×10 ft room → 100 SF raw / 107 SF with 7% waste
+  - `cargo run -- new -n "My Job" -o project.json`
+  - `cargo run -- summary project.json`
+  - `cargo run -- inspect-pdf plan.pdf` — text extraction + scale note detection
+- PDF text extraction via `pdf-extract`
 
-### Key Design Principles
-
-- **Provenance first**: Every measurement records scale, method (manual/agent/auto), actor, confidence, and original geometry.
-- **Scale is explicit**: Never assume a scale. Per-sheet calibration is mandatory.
-- **Human review**: Agent-proposed measurements stay pending until approved.
-- **Waste & assemblies**: Applied only at report time, not to raw measured quantities.
-- **Open data**: Export formats designed for interoperability (JSON, CSV, DXF later).
-
-## Current Status
-
-**Early foundation** (v0.1.0-alpha).
-
-Implemented:
-- Core geometry (polygons, area, perimeter) using the `geo` crate
-- Scale model with calibration
-- Takeoff document model with conditions, measurements, and provenance
-- CLI skeleton (`cargo run`)
-
-Planned next:
-- PDF loading and page rendering (pdfium or similar)
-- Interactive canvas (egui or Tauri + webview)
-- Symbol counting / OCR
-- Full MCP server
-- Marked-up PDF export
-- Roll-goods / materials calculations
-
-## Building & Running
+## Quick Start
 
 ```bash
 git clone https://github.com/estm8r/opentakeoff-rs.git
 cd opentakeoff-rs
-cargo build --release
-cargo run -- --help
+cargo run -- demo
+cargo run -- new -n "Sample" -o sample.json
+cargo run -- summary sample.json
 ```
 
 ## Architecture
 
 ```
 src/
-  lib.rs          # Public API
-  geometry.rs     # Polygon ops, area, perimeter (geo)
-  scale.rs        # Scale calibration & conversion
-  takeoff.rs      # Document model, measurements, provenance
-  pdf.rs          # PDF page handling (stub)
-  main.rs         # CLI
+  geometry.rs   # Polygon ops, area_sf, perimeter_lf
+  scale.rs      # Scale calibration
+  takeoff.rs    # Document model, quantities, JSON I/O
+  pdf.rs        # Text extraction + scale detection
+  main.rs       # CLI
 ```
 
-The library is designed so a desktop GUI (Tauri/egui) or MCP server can consume the same pure engine.
+The library is pure and can be consumed by a future desktop UI (egui/Tauri) or Rust MCP server.
+
+## Roadmap
+
+- [x] Core geometry + scale + provenance model
+- [x] Area / Linear / Count measurements
+- [x] JSON persistence + functional CLI
+- [x] PDF text extraction for scale notes
+- [ ] Interactive desktop canvas (egui)
+- [ ] Full PDF page rendering + vector snapping
+- [ ] Symbol detection / counting
+- [ ] Marked-up PDF export
+- [ ] Rust MCP server for AI agents
+- [ ] Materials / roll-goods calculations
 
 ## License
 
-AGPL-3.0 — same spirit as the original. See [LICENSE](LICENSE).
+AGPL-3.0. Independent rewrite inspired by Kentucky-ai/opentakeoff.
 
-Inspired by the excellent work at Kentucky-ai/opentakeoff. This is an independent rewrite, not a fork.
+## Improvements over original
 
-## Contributing
-
-This is early. Issues and PRs welcome, especially around PDF rendering, UI, and geometry edge cases (doors, openings, hatches).
+- Native speed and stronger typing
+- Explicit scale and provenance as first-class concepts
+- Reliable offline file access
+- Geometry backed by a robust crate instead of custom floating-point code
