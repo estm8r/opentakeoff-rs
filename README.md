@@ -20,9 +20,10 @@ Ground-up rewrite focused on performance, correctness, type safety, and a reliab
 - **Desktop app** (egui):
   - `cargo run --bin desktop`
   - Load/save JSON projects
-  - Condition selector
-  - Add sample 10×10 ft area measurements
+  - Condition selector (Floor / Wall / Fixture)
+  - Add sample measurements: 10×10 ft Area, 20 ft Linear, Count
   - Live quantity view (raw + order with waste)
+  - Export quantities to CSV
 - PDF text extraction via `pdf-extract`
 
 ## Quick Start
@@ -31,7 +32,7 @@ Ground-up rewrite focused on performance, correctness, type safety, and a reliab
 git clone https://github.com/estm8r/opentakeoff-rs.git
 cd opentakeoff-rs
 cargo run -- demo
-cargo run --bin desktop          # GUI with measurement tools
+cargo run --bin desktop          # GUI
 ```
 
 ## Architecture
@@ -54,7 +55,7 @@ The library is pure and can be consumed by the desktop UI or a future Rust MCP s
 - [x] Area / Linear / Count measurements
 - [x] JSON persistence + functional CLI
 - [x] PDF text extraction for scale notes
-- [x] Desktop UI with project management and sample measurements
+- [x] Desktop UI with Area/Linear/Count tools and CSV export
 - [ ] Interactive canvas with PDF rendering + vector snapping
 - [ ] Symbol detection / counting
 - [ ] Marked-up PDF export
@@ -71,4 +72,4 @@ AGPL-3.0. Independent rewrite inspired by Kentucky-ai/opentakeoff.
 - Explicit scale and provenance as first-class concepts
 - Reliable offline file access
 - Geometry backed by a robust crate instead of custom floating-point code
-- Desktop-native UI with measurement tools
+- Desktop-native UI with measurement and export tools
