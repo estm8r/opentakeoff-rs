@@ -17,8 +17,12 @@ Ground-up rewrite focused on performance, correctness, type safety, and a reliab
   - `cargo run -- new -n "My Job" -o project.json`
   - `cargo run -- summary project.json`
   - `cargo run -- inspect-pdf plan.pdf` — text extraction + scale note detection
-- **Desktop app** (egui): load/save JSON projects and view quantities
+- **Desktop app** (egui):
   - `cargo run --bin desktop`
+  - Load/save JSON projects
+  - Condition selector
+  - Add sample 10×10 ft area measurements
+  - Live quantity view (raw + order with waste)
 - PDF text extraction via `pdf-extract`
 
 ## Quick Start
@@ -27,7 +31,7 @@ Ground-up rewrite focused on performance, correctness, type safety, and a reliab
 git clone https://github.com/estm8r/opentakeoff-rs.git
 cd opentakeoff-rs
 cargo run -- demo
-cargo run --bin desktop          # GUI
+cargo run --bin desktop          # GUI with measurement tools
 ```
 
 ## Architecture
@@ -50,7 +54,7 @@ The library is pure and can be consumed by the desktop UI or a future Rust MCP s
 - [x] Area / Linear / Count measurements
 - [x] JSON persistence + functional CLI
 - [x] PDF text extraction for scale notes
-- [x] Basic desktop UI (egui) for project load/save and quantity view
+- [x] Desktop UI with project management and sample measurements
 - [ ] Interactive canvas with PDF rendering + vector snapping
 - [ ] Symbol detection / counting
 - [ ] Marked-up PDF export
@@ -67,4 +71,4 @@ AGPL-3.0. Independent rewrite inspired by Kentucky-ai/opentakeoff.
 - Explicit scale and provenance as first-class concepts
 - Reliable offline file access
 - Geometry backed by a robust crate instead of custom floating-point code
-- Desktop-native UI
+- Desktop-native UI with measurement tools
