@@ -7,6 +7,7 @@ description = "Rust rewrite of OpenTakeoff: native construction quantity takeoff
 license = "AGPL-3.0"
 repository = "https://github.com/estm8r/opentakeoff-rs"
 readme = "README.md"
+default-run = "opentakeoff-rs"
 
 [dependencies]
 geo = "0.28"
@@ -17,6 +18,9 @@ thiserror = "1"
 clap = { version = "4", features = ["derive"] }
 anyhow = "1"
 pdf-extract = "0.12.1"
+eframe = { version = "0.37.0", features = ["default"] }
+egui = "0.37.0"
+rfd = "0.17.2"
 
 [dev-dependencies]
 approx = "0.5"
